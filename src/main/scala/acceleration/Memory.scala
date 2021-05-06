@@ -5,7 +5,7 @@ class Memory(data_width: Int,addr_width:Int) extends Module {
   val io = IO(new Bundle {
     val rdAddr = Input(UInt(addr_width.W))
     val rdData = Output(UInt(data_width.W))
-    val wrEna = Input(Bool())
+    val wrEna  = Input(Bool())
     val wrData = Input(UInt(data_width.W))
     val wrAddr = Input(UInt(addr_width.W))
   })
