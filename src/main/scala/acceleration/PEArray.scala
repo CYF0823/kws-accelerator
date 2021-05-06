@@ -244,7 +244,6 @@ class accumulator_registers(data_width: Int,addr_width:Int) extends Module {
     val wrData = Input(UInt(data_width.W))
     val wrAddr = Input(UInt(addr_width.W))
   })
-
   //val register = RegInit(Vec(2^addr_width,UInt(data_width.W)))
   val register = RegInit(VecInit(Seq.fill(2^addr_width)(0.U(data_width.W))))
 
