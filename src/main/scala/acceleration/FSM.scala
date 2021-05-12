@@ -133,7 +133,7 @@ class FSM(n: Int,addr: Int) extends Module {
 
     is(dw1) {
       when(count =/= 52.U){
-        count := count + 1
+        count := count + 1.U
       }
       //PE state
       when(count === 0.U){
@@ -148,10 +148,15 @@ class FSM(n: Int,addr: Int) extends Module {
         PE_above_data_ctrl := 0.U
         PE_rd_data_mux := 0.U
       }
+      when(count === 1.U){
+        for (i <- 0 until 3){
+          PEArray_ctrl(i).mask := "b0000_0000_0000".U
+        }
+      }
       //read
       when((count >= 1.U) && (count <= 49.U)){
         for (i <- 0 until 12) {
-          L1_rd_addr(i) := L1_rd_addr(i) + 1
+          L1_rd_addr(i) := L1_rd_addr(i) + 1.U
         }
       }
       //write initialize
@@ -167,7 +172,7 @@ class FSM(n: Int,addr: Int) extends Module {
       when((count >= 5.U) && (count <= 43.U) && (count % 10.U =/= 2.U) && (count % 10.U =/= 3.U)){
         for (i <- 0 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when((count >= 5.U) && (count <= 43.U) && (count % 10.U === 2.U) && (count % 10.U === 3.U)){
@@ -177,7 +182,7 @@ class FSM(n: Int,addr: Int) extends Module {
       }
       when((count >= 44.U) && (count <= 51.U)){
         L1_wrEna(0) := true.B
-        L1_wr_addr(0) := L1_wr_addr(0) + 1
+        L1_wr_addr(0) := L1_wr_addr(0) + 1.U
         for (i <- 1 until 12) {
           L1_wrEna(i) := false.B
         }
@@ -194,7 +199,7 @@ class FSM(n: Int,addr: Int) extends Module {
 
     is(pw1) {
       when(count =/= 405.U){
-        count := count + 1
+        count := count + 1.U
       }
       when(count === 0.U){
         //PE state
@@ -219,13 +224,18 @@ class FSM(n: Int,addr: Int) extends Module {
         PEArray_ctrl(2).control := 2.U
         PEArray_ctrl(2).mask := PEArray_ctrl(2).mask >> 1
       }
+      when(count === 12.U){
+        for (i <- 0 until 3){
+          PEArray_ctrl(i).mask := "b0000_0000_0000".U
+        }
+      }
 
       //read
       when(count >= 1.U && count <= 391.U){
-        L1_rd_addr(read_index) := L1_rd_addr(read_index) + 1
+        L1_rd_addr(read_index) := L1_rd_addr(read_index) + 1.U
         when((count % 8.U === 7.U) && (count % 96.U =/= 95.U)){
-          read_index := read_index + 1
-          PE_rd_data_mux := PE_rd_data_mux + 1
+          read_index := read_index + 1.U
+          PE_rd_data_mux := PE_rd_data_mux + 1.U
         }
         when(count % 96.U === 95.U){
           read_index := 0.U
@@ -236,139 +246,139 @@ class FSM(n: Int,addr: Int) extends Module {
       when(count === 2.U){
         for (i <- 0 until 1) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 3.U){
         for (i <- 0 until 2) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 4.U){
         for (i <- 0 until 3) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 5.U){
         for (i <- 0 until 4) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 6.U){
         for (i <- 0 until 5) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 7.U){
         for (i <- 0 until 6) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 8.U){
         for (i <- 0 until 7) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 9.U){
         for (i <- 0 until 8) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 10.U){
         for (i <- 0 until 9) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 11.U){
         for (i <- 0 until 10) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 12.U){
         for (i <- 0 until 11) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when((count >= 13.U) && (count <= 393.U)){
         for (i <- 0 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 394.U){
         for (i <- 1 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 395.U){
         for (i <- 2 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 396.U){
         for (i <- 3 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 397.U){
         for (i <- 4 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 398.U){
         for (i <- 5 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 399.U){
         for (i <- 6 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 400.U){
         for (i <- 7 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 401.U){
         for (i <- 8 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 402.U){
         for (i <- 9 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 403.U){
         for (i <- 10 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       when(count === 404.U){
         for (i <- 11 until 12) {
           L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1
+          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
       //next state
@@ -385,7 +395,7 @@ class FSM(n: Int,addr: Int) extends Module {
       //load ht and input to PE
       when(gru_state === 0.U){
         when(count =/= 18.U){
-          count := count + 1
+          count := count + 1.U
         }
         //load ht
         when(count === 0.U){
@@ -398,12 +408,17 @@ class FSM(n: Int,addr: Int) extends Module {
           PE_above_data_ctrl := 1.U
           PE_rd_data_mux := 0.U
           }
+        when(count === 1.U){
+          for (i <- 0 until 3){
+            PEArray_ctrl(i).mask := "b0000_0000_0000".U
+          }
+        }
         when(count === 2.U){
           Ht_to_PE_control := 0.U
         }
         //load ht
         when((count >= 3.U) && (count <= 7.U)){
-          Ht_to_PE_control := Ht_to_PE_control + 1
+          Ht_to_PE_control := Ht_to_PE_control + 1.U
         }
         //load input initialize
         when(count === 7.U){
@@ -415,7 +430,7 @@ class FSM(n: Int,addr: Int) extends Module {
         //load input
         when((count >= 8.U) && (count <= 14.U)){
           for(i <- 0 until 12){
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 18.U){
@@ -426,7 +441,7 @@ class FSM(n: Int,addr: Int) extends Module {
       //zt
       when(gru_state === 1.U){
         when(count =/= 910.U){
-          count := count + 1
+          count := count + 1.U
         }
         when(count === 0.U){
           //PE state
@@ -457,121 +472,126 @@ class FSM(n: Int,addr: Int) extends Module {
           PEArray_ctrl(2).mask := PEArray_ctrl(2).mask >> 1
           PEArray_ctrl(2).gru_out_width := 64.U
         }
+        when(count === 12.U){
+          for (i <- 0 until 3){
+            PEArray_ctrl(i).mask := "b0000_0000_0000".U
+          }
+        }
 
         //read
         when(count === 1.U){
           for (i <- 0 until 1) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 2.U){
           for (i <- 0 until 2) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 3.U){
           for (i <- 0 until 3) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 4.U){
           for (i <- 0 until 4) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 5.U){
           for (i <- 0 until 5) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 6.U){
           for (i <- 0 until 6) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 7.U){
           for (i <- 0 until 7) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 8.U){
           for (i <- 0 until 8) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 9.U){
           for (i <- 0 until 9) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 10.U){
           for (i <- 0 until 10) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 11.U){
           for (i <- 0 until 11) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when((count >= 12.U) && (count <= 895.U)){
           for (i <- 0 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 896.U){
           for (i <- 1 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 897.U){
           for (i <- 2 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 898.U){
           for (i <- 3 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 899.U){
           for (i <- 4 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 900.U){
           for (i <- 5 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 901.U){
           for (i <- 6 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 902.U){
           for (i <- 7 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 903.U){
           for (i <- 8 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 904.U){
           for (i <- 9 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 905.U){
           for (i <- 10 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 906.U){
           for (i <- 11 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         //write
@@ -581,7 +601,7 @@ class FSM(n: Int,addr: Int) extends Module {
             Zt_wrEna := true.B
           }
           .otherwise{
-            Zt_wrAddr := Zt_wrAddr + 1
+            Zt_wrAddr := Zt_wrAddr + 1.U
             Zt_wrEna := true.B
           }
         }
@@ -595,7 +615,7 @@ class FSM(n: Int,addr: Int) extends Module {
       //rt
       when(gru_state === 2.U){
         when(count =/= 910.U){
-          count := count + 1
+          count := count + 1.U
         }
         when(count === 0.U){
           //PE state
@@ -623,121 +643,126 @@ class FSM(n: Int,addr: Int) extends Module {
           PEArray_ctrl(2).mask := PEArray_ctrl(2).mask >> 1
           PEArray_ctrl(2).gru_out_width := 64.U
         }
+        when(count === 12.U){
+          for (i <- 0 until 3){
+            PEArray_ctrl(i).mask := "b0000_0000_0000".U
+          }
+        }
 
         //read
         when(count === 1.U){
           for (i <- 0 until 1) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 2.U){
           for (i <- 0 until 2) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 3.U){
           for (i <- 0 until 3) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 4.U){
           for (i <- 0 until 4) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 5.U){
           for (i <- 0 until 5) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 6.U){
           for (i <- 0 until 6) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 7.U){
           for (i <- 0 until 7) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 8.U){
           for (i <- 0 until 8) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 9.U){
           for (i <- 0 until 9) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 10.U){
           for (i <- 0 until 10) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 11.U){
           for (i <- 0 until 11) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when((count >= 12.U) && (count <= 895.U)){
           for (i <- 0 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 896.U){
           for (i <- 1 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 897.U){
           for (i <- 2 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 898.U){
           for (i <- 3 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 899.U){
           for (i <- 4 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 900.U){
           for (i <- 5 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 901.U){
           for (i <- 6 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 902.U){
           for (i <- 7 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 903.U){
           for (i <- 8 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 904.U){
           for (i <- 9 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 905.U){
           for (i <- 10 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 906.U){
           for (i <- 11 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         //write
@@ -747,7 +772,7 @@ class FSM(n: Int,addr: Int) extends Module {
             Rt_wrEna := true.B
           }
             .otherwise{
-              Rt_wrAddr := Rt_wrAddr + 1
+              Rt_wrAddr := Rt_wrAddr + 1.U
               Rt_wrEna := true.B
             }
         }
@@ -762,7 +787,7 @@ class FSM(n: Int,addr: Int) extends Module {
       //WhXt
       when(gru_state === 3.U){
         when(count =/= 526.U){
-          count := count + 1
+          count := count + 1.U
         }
         when(count === 0.U){
           //PE state
@@ -790,121 +815,126 @@ class FSM(n: Int,addr: Int) extends Module {
           PEArray_ctrl(2).mask := PEArray_ctrl(2).mask >> 1
           PEArray_ctrl(2).gru_out_width := 64.U
         }
+        when(count === 12.U){
+          for (i <- 0 until 3){
+            PEArray_ctrl(i).mask := "b0000_0000_0000".U
+          }
+        }
 
         //read
         when(count === 1.U){
           for (i <- 0 until 1) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 2.U){
           for (i <- 0 until 2) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 3.U){
           for (i <- 0 until 3) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 4.U){
           for (i <- 0 until 4) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 5.U){
           for (i <- 0 until 5) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 6.U){
           for (i <- 0 until 6) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 7.U){
           for (i <- 0 until 7) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 8.U){
           for (i <- 0 until 8) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 9.U){
           for (i <- 0 until 9) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 10.U){
           for (i <- 0 until 10) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 11.U){
           for (i <- 0 until 11) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when((count >= 12.U) && (count <= 511.U)){
           for (i <- 0 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 512.U){
           for (i <- 1 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 513.U){
           for (i <- 2 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 514.U){
           for (i <- 3 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 515.U){
           for (i <- 4 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 516.U){
           for (i <- 5 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 517.U){
           for (i <- 6 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 518.U){
           for (i <- 7 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 519.U){
           for (i <- 8 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 520.U){
           for (i <- 9 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 521.U){
           for (i <- 10 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 522.U){
           for (i <- 11 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         //write
@@ -914,7 +944,7 @@ class FSM(n: Int,addr: Int) extends Module {
             WhXt_wrEna := true.B
           }
             .otherwise{
-              WhXt_wrAddr := WhXt_wrAddr + 1
+              WhXt_wrAddr := WhXt_wrAddr + 1.U
               WhXt_wrEna := true.B
             }
         }
@@ -929,7 +959,7 @@ class FSM(n: Int,addr: Int) extends Module {
       //Uhht_1
       when(gru_state === 4.U){
         when(count =/= 398.U){
-          count := count + 1
+          count := count + 1.U
         }
         when(count === 0.U){
           //PE state
@@ -957,121 +987,126 @@ class FSM(n: Int,addr: Int) extends Module {
           PEArray_ctrl(2).mask := PEArray_ctrl(2).mask >> 1
           PEArray_ctrl(2).gru_out_width := 64.U
         }
+        when(count === 12.U){
+          for (i <- 0 until 3){
+            PEArray_ctrl(i).mask := "b0000_0000_0000".U
+          }
+        }
 
         //read
         when(count === 1.U){
           for (i <- 0 until 1) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 2.U){
           for (i <- 0 until 2) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 3.U){
           for (i <- 0 until 3) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 4.U){
           for (i <- 0 until 4) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 5.U){
           for (i <- 0 until 5) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 6.U){
           for (i <- 0 until 6) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 7.U){
           for (i <- 0 until 7) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 8.U){
           for (i <- 0 until 8) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 9.U){
           for (i <- 0 until 9) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 10.U){
           for (i <- 0 until 10) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 11.U){
           for (i <- 0 until 11) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when((count >= 12.U) && (count <= 383.U)){
           for (i <- 0 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 384.U){
           for (i <- 1 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 385.U){
           for (i <- 2 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 386.U){
           for (i <- 3 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 387.U){
           for (i <- 4 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 388.U){
           for (i <- 5 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 389.U){
           for (i <- 6 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 390.U){
           for (i <- 7 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 391.U){
           for (i <- 8 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 392.U){
           for (i <- 9 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 393.U){
           for (i <- 10 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 394.U){
           for (i <- 11 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         //write
@@ -1081,7 +1116,7 @@ class FSM(n: Int,addr: Int) extends Module {
             Uhht_1_wrEna := true.B
           }
             .otherwise{
-              Uhht_1_wrAddr := Uhht_1_wrAddr + 1
+              Uhht_1_wrAddr := Uhht_1_wrAddr + 1.U
               Uhht_1_wrEna := true.B
             }
         }
@@ -1095,7 +1130,7 @@ class FSM(n: Int,addr: Int) extends Module {
       //EW Unit
       when(gru_state === 5.U){
         when(count =/= 68.U){
-          count := count + 1
+          count := count + 1.U
         }
         //read initialize
         when(count === 0.U){
@@ -1105,10 +1140,10 @@ class FSM(n: Int,addr: Int) extends Module {
           Uhht_1_rdAddr := 0.U
         }
         when((count >= 1.U) && (count <= 63.U)){
-          Zt_rdAddr := Zt_rdAddr + 1
-          Rt_rdAddr := Rt_rdAddr + 1
-          WhXt_rdAddr := WhXt_rdAddr + 1
-          Uhht_1_rdAddr := Uhht_1_rdAddr + 1
+          Zt_rdAddr := Zt_rdAddr + 1.U
+          Rt_rdAddr := Rt_rdAddr + 1.U
+          WhXt_rdAddr := WhXt_rdAddr + 1.U
+          Uhht_1_rdAddr := Uhht_1_rdAddr + 1.U
         }
         //write initialize
         when(count === 3.U){
@@ -1116,7 +1151,7 @@ class FSM(n: Int,addr: Int) extends Module {
           Ht_wrEna := true.B
         }
         when(count <= 4.U && count >= 67.U){
-          Ht_wrAddr := Ht_wrAddr + 1
+          Ht_wrAddr := Ht_wrAddr + 1.U
         }
         when(count === 68.U){
           count := 0.U
@@ -1136,7 +1171,7 @@ class FSM(n: Int,addr: Int) extends Module {
     is(fc) {
       when(fc_state === 0.U){
         when(count =/= 10.U){
-          count := count + 1
+          count := count + 1.U
         }
         //load ht
         when(count === 0.U){
@@ -1149,12 +1184,17 @@ class FSM(n: Int,addr: Int) extends Module {
           PE_above_data_ctrl := 1.U
           PE_rd_data_mux := 0.U
         }
+        when(count === 1.U){
+          for (i <- 0 until 3){
+            PEArray_ctrl(i).mask := "b0000_0000_0000".U
+          }
+        }
         when(count === 2.U){
           Ht_to_PE_control := 0.U
         }
         //load ht
         when((count >= 3.U) && (count <= 7.U)){
-          Ht_to_PE_control := Ht_to_PE_control + 1
+          Ht_to_PE_control := Ht_to_PE_control + 1.U
         }
         when(count === 10.U){
           count := 0.U
@@ -1163,7 +1203,7 @@ class FSM(n: Int,addr: Int) extends Module {
       }
       when(fc_state === 1.U){
         when(count =/= 398.U){
-          count := count + 1
+          count := count + 1.U
         }
         when(count === 0.U){
           //PE state
@@ -1191,121 +1231,126 @@ class FSM(n: Int,addr: Int) extends Module {
           PEArray_ctrl(2).mask := PEArray_ctrl(2).mask >> 1
           PEArray_ctrl(2).gru_out_width := 64.U
         }
+        when(count === 12.U){
+          for (i <- 0 until 3){
+            PEArray_ctrl(i).mask := "b0000_0000_0000".U
+          }
+        }
 
         //read
         when(count === 1.U){
           for (i <- 0 until 1) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 2.U){
           for (i <- 0 until 2) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 3.U){
           for (i <- 0 until 3) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 4.U){
           for (i <- 0 until 4) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 5.U){
           for (i <- 0 until 5) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 6.U){
           for (i <- 0 until 6) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 7.U){
           for (i <- 0 until 7) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 8.U){
           for (i <- 0 until 8) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 9.U){
           for (i <- 0 until 9) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 10.U){
           for (i <- 0 until 10) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 11.U){
           for (i <- 0 until 11) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when((count >= 12.U) && (count <= 383.U)){
           for (i <- 0 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 384.U){
           for (i <- 1 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 385.U){
           for (i <- 2 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 386.U){
           for (i <- 3 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 387.U){
           for (i <- 4 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 388.U){
           for (i <- 5 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 389.U){
           for (i <- 6 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 390.U){
           for (i <- 7 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 391.U){
           for (i <- 8 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 392.U){
           for (i <- 9 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 393.U){
           for (i <- 10 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 394.U){
           for (i <- 11 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         //write
@@ -1315,7 +1360,7 @@ class FSM(n: Int,addr: Int) extends Module {
             FC_temp_wrEna := true.B
           }
             .otherwise{
-              FC_temp_wrAddr := FC_temp_wrAddr + 1
+              FC_temp_wrAddr := FC_temp_wrAddr + 1.U
               FC_temp_wrEna := true.B
             }
         }
@@ -1328,7 +1373,7 @@ class FSM(n: Int,addr: Int) extends Module {
       }
       when(fc_state === 2.U){
         when(count =/= 10.U){
-          count := count + 1
+          count := count + 1.U
         }
         //load ht
         when(count === 0.U){
@@ -1341,12 +1386,17 @@ class FSM(n: Int,addr: Int) extends Module {
           PE_above_data_ctrl := 2.U //choose FC_temp
           PE_rd_data_mux := 0.U
         }
+        when(count === 1.U){
+          for (i <- 0 until 3){
+            PEArray_ctrl(i).mask := "b0000_0000_0000".U
+          }
+        }
         when(count === 2.U){
           FC_temp_to_PE_control := 0.U
         }
         //load ht
         when((count >= 3.U) && (count <= 7.U)){
-          FC_temp_to_PE_control := FC_temp_to_PE_control + 1
+          FC_temp_to_PE_control := FC_temp_to_PE_control + 1.U
         }
         when(count === 10.U){
           count := 0.U
@@ -1356,7 +1406,7 @@ class FSM(n: Int,addr: Int) extends Module {
       //Result
       when(fc_state === 3.U){
         when(count =/= 398.U){
-          count := count + 1
+          count := count + 1.U
         }
         when(count === 0.U){
           //PE state
@@ -1384,121 +1434,126 @@ class FSM(n: Int,addr: Int) extends Module {
           PEArray_ctrl(2).mask := PEArray_ctrl(2).mask >> 1
           PEArray_ctrl(2).gru_out_width := 12.U
         }
+        when(count === 12.U){
+          for (i <- 0 until 3){
+            PEArray_ctrl(i).mask := "b0000_0000_0000".U
+          }
+        }
 
         //read
         when(count === 1.U){
           for (i <- 0 until 1) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 2.U){
           for (i <- 0 until 2) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 3.U){
           for (i <- 0 until 3) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 4.U){
           for (i <- 0 until 4) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 5.U){
           for (i <- 0 until 5) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 6.U){
           for (i <- 0 until 6) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 7.U){
           for (i <- 0 until 7) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 8.U){
           for (i <- 0 until 8) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 9.U){
           for (i <- 0 until 9) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 10.U){
           for (i <- 0 until 10) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 11.U){
           for (i <- 0 until 11) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when((count >= 12.U) && (count <= 71.U)){
           for (i <- 0 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 72.U){
           for (i <- 1 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 73.U){
           for (i <- 2 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 74.U){
           for (i <- 3 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 75.U){
           for (i <- 4 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 76.U){
           for (i <- 5 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 77.U){
           for (i <- 6 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 78.U){
           for (i <- 7 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 79.U){
           for (i <- 8 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 80.U){
           for (i <- 9 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 81.U){
           for (i <- 10 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         when(count === 82.U){
           for (i <- 11 until 12) {
-            L1_rd_addr(i) := L1_rd_addr(i) + 1
+            L1_rd_addr(i) := L1_rd_addr(i) + 1.U
           }
         }
         //write
@@ -1508,7 +1563,7 @@ class FSM(n: Int,addr: Int) extends Module {
             Result_wrEna := true.B
           }
             .otherwise{
-              Result_wrAddr := Result_wrAddr + 1
+              Result_wrAddr := Result_wrAddr + 1.U
               Result_wrEna := true.B
             }
         }

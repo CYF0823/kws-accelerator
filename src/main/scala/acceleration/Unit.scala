@@ -21,13 +21,13 @@ class BN_Unit(data_width:Int) extends Module{
   when(io.control === 0.U){
     io.output := io.input
   }
-  when(io.control === 1.U){
+  .elsewhen(io.control === 1.U){
     io.output := io.input + BN_bias(0)
   }
-  when(io.control === 2.U){
+  .elsewhen(io.control === 2.U){
     io.output := io.input + BN_bias(1)
   }
-  when(io.control === 3.U){
+  .otherwise{
     io.output := io.input + BN_bias(2)
   }
 }
@@ -39,7 +39,8 @@ class BN_Unit_Array(width:Int) extends Module{
     val to_Relu6 = Output(Vec(12,UInt(width.W)))
   })
 
-  val BN_Array = Vec(12,Module(new BN_Unit(data_width = width)))
+  //val BN_Array = Vec(12,Module(new BN_Unit(data_width = width)))
+  val BN_Array = Seq.fill(12)(Module(new BN_Unit(data_width = width)))
 
   //connection
   for(i <- 0 until 12){
@@ -60,14 +61,15 @@ class Relu6_Unit(width:Int) extends Module{
   when(io.control === 0.U){
     io.output := io.input
   }
-  when(io.control === 1.U){
+    //control === 1.U
+  .otherwise{
     when(io.input < 0.U){
       io.output := 0.U
     }
-    when((io.input >= 0.U) && (io.input <= 6.U)){
+    .elsewhen((io.input >= 0.U) && (io.input <= 6.U)){
       io.output := io.input
     }
-    when(io.input > 6.U){
+    .otherwise{
       io.output := 6.U
     }
   }
@@ -80,7 +82,8 @@ class Relu6_Unit_Array(width:Int) extends Module{
     val output = Output(Vec(12,UInt(width.W)))
   })
 
-  val Relu6_Array = Vec(12,Module(new Relu6_Unit(width = width)))
+  //val Relu6_Array = Vec(12,Module(new Relu6_Unit(width = width)))
+  val Relu6_Array = Seq.fill(12)(Module(new BN_Unit(data_width = width)))
 
   //connection
   for(i <- 0 until 12){
@@ -149,26 +152,29 @@ class accumulator_registers(data_width: Int,addr_width:Int) extends Module {
     register(io.wrAddr) := io.wrData + register(io.wrAddr)
   }
 }
+
 class ht(data_width: Int,addr_width:Int) extends Module {
   val io = IO(new Bundle {
     val to_PE = Output(Vec(12,UInt(data_width.W)))
     val to_PE_control = Input(UInt(3.W))
     val rdData = Output(UInt(data_width.W))
-    val rdAddr = Output(UInt(addr_width.W))
+    val rdAddr = Input(UInt(addr_width.W))
     val wrEna = Input(Bool())
     val wrData = Input(UInt(data_width.W))
     val wrAddr = Input(UInt(addr_width.W))
   })
 
-  val register = RegInit(VecInit(Seq.fill(2^addr_width)(0.U(data_width.W))))
+  val register = RegInit(VecInit(Seq.fill(64)(0.U(data_width.W))))
+  printf("register63=%d\n",register(63))
 
+  printf("\n")
   //to_PE
   when(io.to_PE_control <= 4.U){
     for (i <- 0 until 12){
       io.to_PE(i) := register(io.to_PE_control * 12.U + i.U)
     }
   }
-  when(io.to_PE_control === 5.U){
+  .elsewhen(io.to_PE_control === 5.U){
     for (i <- 0 until 4){
       io.to_PE(i) := register(io.to_PE_control * 12.U + i.U)
     }
@@ -176,6 +182,11 @@ class ht(data_width: Int,addr_width:Int) extends Module {
       io.to_PE(i) := 0.U
     }
   }
+    .otherwise{
+      for (i <- 0 until 12){
+        io.to_PE(i) := 0.U
+      }
+    }
 
   //read
   io.rdData := register(io.rdAddr)

@@ -6,7 +6,8 @@ class Top(bit_width: Int, mem_addr_width: Int,registers_addr_width:Int) extends 
   val io = IO(new Bundle {
   })
 
-  val L1_Memory_top = Wire(Vec(12,Module(new Memory(data_width = bit_width,addr_width = mem_addr_width))))
+  //val L1_Memory_top = Wire(Vec(12,Module(new Memory(data_width = bit_width,addr_width = mem_addr_width))))
+  val L1_Memory_top = Seq.fill(12)(Module(new Memory(data_width = bit_width,addr_width = mem_addr_width)))
   val PEArray_top = Module(new PEArray(bit_width))
   val FSM_top = Module(new FSM(n = bit_width,addr = mem_addr_width))
 

@@ -28,31 +28,50 @@ class PE(width: Int, row: Int, column: Int) extends Module {
   val sel5 = Wire(Bool())   //MAC logic
   val sel6 = Wire(Bool())   //MAC input left
 
+  //initialize
+  sel1 := true.B
+  sel2 := true.B
+  sel3 := true.B
+  sel4 := 0.U
+  sel5 := true.B
+  sel6 := true.B
+
+  val L0Index = RegInit(0.U(6.W))
+  val L0Memory = Reg(Vec(100,UInt(width.W)))
+
+
   val mux1out = Wire(UInt(width.W))
+  val mux2out = Wire(UInt(width.W))
+  val mux3out = Wire(UInt(width.W))
+  val mux4out = Wire(UInt(width.W))
+  val MAC_out = Wire(UInt(width.W))
+  val mux6out = Wire(UInt(width.W))
+
   when(sel1) {mux1out := io.FromL1}
     .otherwise{mux1out := io.FromLeftPE}
 
-  val mux2out = Wire(UInt(width.W))
   when(sel2) {mux2out := MAC_out}
     .otherwise{mux2out := io.FromAbovePE}
 
-  val L0Index = Wire(UInt(6.W))
-  val L0Memory = Reg(Vec(100,UInt(width.W)))
-
-  val mux3out = Wire(UInt(width.W))
   when(sel3) {mux3out := MAC_out}
     .otherwise{mux3out := mux1out}
 
-  val mux4out = Wire(UInt(width.W))
-  when(sel4 === 0.U) {mux4out := 0.U(width.W)}
-    .elsewhen(sel4 === 1.U){mux4out := io.FromAbovePE}
-    .elsewhen(sel4 === 2.U){mux4out := io.FromL1}
+  when(sel4 === 0.U) {
+    mux4out := 0.U(width.W)
+  }
+    .elsewhen(sel4 === 1.U){
+      mux4out := io.FromAbovePE
+    }
+    .elsewhen(sel4 === 2.U){
+      mux4out := io.FromL1
+    }
+    .otherwise{
+      mux4out := 0.U(width.W)
+    }
 
-  val MAC_out = Wire(UInt(width.W))
   when(sel5)  {MAC_out := mux6out * mux4out + L0Memory(L0Index)}
     .otherwise{MAC_out := mux6out * L0Memory(L0Index) + mux4out}
 
-  val mux6out = Wire(UInt(width.W))
   when(sel6) {mux6out := mux1out}
     .otherwise{mux6out := 0.U(width.W)}
 
@@ -72,42 +91,47 @@ class PE(width: Int, row: Int, column: Int) extends Module {
   val L0index_begin = Reg(UInt(6.W))
   val GRU_out_width = Reg(UInt(6.W))
 
-  //mask
-  when (io.control_signal.mask(column) === 1.U){
-    switch(io.control_signal.control) {
-      //idle
-      is(0.U(3.W)) {
-        state := idle
-      }
-      //dw1
-      is(1.U(3.W)) {
-        state := dw1
-      }
-      //pw1
-      is(2.U(3.W)) {
-        state := pw1
-      }
-      //l0_load
-      is(3.U(3.W)) {
-        state := l0_load
-      }
-      //gru
-      is(4.U(3.W)) {
-        state := gru
-      }
-      //fc
-      is(5.U(3.W)) {
-        state := fc
-      }
-    }
-    count_max := io.control_signal.count
-    L0index_begin := io.control_signal.L0index
-    GRU_out_width := io.control_signal.gru_out_width
-  }
-
   switch(state) {
     is(idle) {
+      sel1 := true.B
+      sel2 := true.B
+      sel3 := true.B
+      sel4 := 0.U
+      sel5 := false.B
+      sel6 := true.B
 
+      //mask
+      when (io.control_signal.mask(column) === 1.U){
+        switch(io.control_signal.control) {
+          //idle
+          is(0.U(3.W)) {
+            state := idle
+          }
+          //dw1
+          is(1.U(3.W)) {
+            state := dw1
+          }
+          //pw1
+          is(2.U(3.W)) {
+            state := pw1
+          }
+          //l0_load
+          is(3.U(3.W)) {
+            state := l0_load
+          }
+          //gru
+          is(4.U(3.W)) {
+            state := gru
+          }
+          //fc
+          is(5.U(3.W)) {
+            state := fc
+          }
+        }
+        count_max := io.control_signal.count
+        L0index_begin := io.control_signal.L0index
+        GRU_out_width := io.control_signal.gru_out_width
+      }
     }
     is(dw1) {
       sel1 := true.B  //upper left
@@ -123,7 +147,7 @@ class PE(width: Int, row: Int, column: Int) extends Module {
       L0Index := row.U
 
       when(count =/= 51.U){
-        count := count + 1
+        count := count + 1.U
       }
       when(count === 51.U){
         count := 0.U
@@ -134,7 +158,7 @@ class PE(width: Int, row: Int, column: Int) extends Module {
     is(pw1) {
       when((row.U === 2.U) && (column.U === 0.U)){
         sel1 := true.B  //upper left
-      } otherwise {
+      } .otherwise {
         sel1 := false.B  //upper left
       }
       sel2 := true.B  //bottom
@@ -142,10 +166,10 @@ class PE(width: Int, row: Int, column: Int) extends Module {
       sel4 := 0.U  //MAC input
       sel5 := false.B  //MAC logic
       sel6 := true.B   //MAC input
-      L0Index := column.U + 3.U
+      L0Index := column.U +& 3.U
 
       when(count =/= 392.U){
-        count := count + 1
+        count := count + 1.U
       }
       when(count === 392.U){
         count := 0.U
@@ -154,14 +178,14 @@ class PE(width: Int, row: Int, column: Int) extends Module {
     }
     is(l0_load) {
       when(count =/= count_max){
-        count := count + 1
+        count := count + 1.U
       }
       when(count === 0.U){
-        L0Index === L0index_begin
+        L0Index := L0index_begin
       }
       when((count >= 1.U) && (count <= (count_max - 1.U))){
         L0Memory(L0Index) := io.FromL1
-        L0Index := L0Index + 1
+        L0Index := L0Index + 1.U
       }
       when(count === count_max){
         count := 0.U
@@ -178,11 +202,11 @@ class PE(width: Int, row: Int, column: Int) extends Module {
       L0Index := L0index_begin
 
       when(count =/= count_max){
-        count := count + 1
+        count := count + 1.U
       }
 
       when((count % GRU_out_width) === (GRU_out_width - 1.U)){
-        L0Index := L0Index + 1
+        L0Index := L0Index + 1.U
       }
 
       when(count === count_max){
@@ -192,7 +216,26 @@ class PE(width: Int, row: Int, column: Int) extends Module {
 
     }
     is(fc) {
+      sel1 := false.B  //upper left
+      sel3 := true.B //bottom right
+      sel4 := 2.U  //MAC input
+      sel5 := false.B  //MAC logic
+      when((column.U === 0.U) && (row.U === 2.U)) {sel6 := false.B}
+        .otherwise{sel6 := true.B}
+      L0Index := L0index_begin
 
+      when(count =/= count_max){
+        count := count + 1.U
+      }
+
+      when((count % GRU_out_width) === (GRU_out_width - 1.U)){
+        L0Index := L0Index + 1.U
+      }
+
+      when(count === count_max){
+        count := 0.U
+        state := idle
+      }
     }
   }
 }
