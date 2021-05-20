@@ -38,6 +38,7 @@ class PE(width: Int, row: Int, column: Int) extends Module {
 
   val L0Index = RegInit(0.U(6.W))
   val L0Memory = Reg(Vec(100,UInt(width.W)))
+  printf("L0Memory(1)=%x\n",L0Memory(1))
 
 
   val mux1out = Wire(UInt(width.W))
@@ -69,8 +70,24 @@ class PE(width: Int, row: Int, column: Int) extends Module {
       mux4out := 0.U(width.W)
     }
 
-  when(sel5)  {MAC_out := mux6out * mux4out + L0Memory(L0Index)}
-    .otherwise{MAC_out := mux6out * L0Memory(L0Index) + mux4out}
+  val FP16MAC = Module(new FP32MulAdder)
+  FP16MAC.io.op := 0.U
+  FP16MAC.io.roundingMode := 0.U
+  FP16MAC.io.detectTininess := 0.U
+  //out = a * b + c
+  when(sel5){
+    FP16MAC.io.b := mux4out
+    FP16MAC.io.c := L0Memory(L0Index)
+  }.otherwise{
+    FP16MAC.io.b := L0Memory(L0Index)
+    FP16MAC.io.c := mux4out
+  }
+  FP16MAC.io.a := mux6out
+  MAC_out := FP16MAC.io.out
+  printf("FP16MAC.io.a=%x\n",FP16MAC.io.a)
+  printf("FP16MAC.io.b=%x\n",FP16MAC.io.b)
+  printf("FP16MAC.io.c=%x\n",FP16MAC.io.c)
+  printf("FP16MAC.io.out=%x\n",FP16MAC.io.out)
 
   when(sel6) {mux6out := mux1out}
     .otherwise{mux6out := 0.U(width.W)}
@@ -81,6 +98,7 @@ class PE(width: Int, row: Int, column: Int) extends Module {
   //output connection
   io.ToBelowPE := mux2out_reg
   io.ToRightPE := mux3out_reg
+  printf("io.ToBelowPE=%x\n",io.ToBelowPE)
 
   //state_machine
 
@@ -90,6 +108,10 @@ class PE(width: Int, row: Int, column: Int) extends Module {
   val count_max = Reg(UInt(10.W))
   val L0index_begin = Reg(UInt(6.W))
   val GRU_out_width = Reg(UInt(6.W))
+
+  printf("state=%d\n",state)
+  printf("count=%d\n",count)
+  printf("\n")
 
   switch(state) {
     is(idle) {
@@ -268,6 +290,9 @@ class PEArray(width: Int) extends Module {
     for(j <- 0 until 3){
       PE_Array(i+1)(j).io.FromLeftPE := PE_Array(i)(j).io.ToRightPE
     }
+  }
+  for(j <- 0 until 3){
+    PE_Array(0)(j).io.FromLeftPE := 0.U
   }
 
   //vertical connection

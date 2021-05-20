@@ -36,7 +36,10 @@ class BN_Unit_Array(width:Int) extends Module{
   val io = IO(new Bundle{
     val from_PE   = Input(Vec(12,UInt(width.W)))
     val control   = Input(Vec(12,UInt(2.W)))
-    val to_Relu6 = Output(Vec(12,UInt(width.W)))
+    val to_Relu6  = Output(Vec(12,UInt(width.W)))
+    val wrAddr    = Input(Vec(12,UInt(2.W)))
+    val wrEna     = Input(Vec(12,Bool()))
+    val wrData    = Input(Vec(12,UInt(width.W)))
   })
 
   //val BN_Array = Vec(12,Module(new BN_Unit(data_width = width)))
@@ -46,6 +49,9 @@ class BN_Unit_Array(width:Int) extends Module{
   for(i <- 0 until 12){
     BN_Array(i).io.input := io.from_PE(i)
     BN_Array(i).io.control := io.control(i)
+    BN_Array(i).io.wrAddr := io.wrAddr(i)
+    BN_Array(i).io.wrEna := io.wrEna(i)
+    BN_Array(i).io.wrData := io.wrData(i)
     io.to_Relu6(i) := BN_Array(i).io.output
   }
 
@@ -83,7 +89,7 @@ class Relu6_Unit_Array(width:Int) extends Module{
   })
 
   //val Relu6_Array = Vec(12,Module(new Relu6_Unit(width = width)))
-  val Relu6_Array = Seq.fill(12)(Module(new BN_Unit(data_width = width)))
+  val Relu6_Array = Seq.fill(12)(Module(new Relu6_Unit(width)))
 
   //connection
   for(i <- 0 until 12){
@@ -138,11 +144,11 @@ class tanh_Unit(width:Int) extends Module{
 
 class accumulator_registers(data_width: Int,addr_width:Int) extends Module {
   val io = IO(new Bundle {
-    val rdAddr = Input(UInt(addr_width.W))
-    val rdData = Output(UInt(data_width.W))
-    val wrEna = Input(Bool())
-    val wrData = Input(UInt(data_width.W))
-    val wrAddr = Input(UInt(addr_width.W))
+    val rdAddr  = Input(UInt(addr_width.W))
+    val rdData  = Output(UInt(data_width.W))
+    val wrEna   = Input(Bool())
+    val wrData  = Input(UInt(data_width.W))
+    val wrAddr  = Input(UInt(addr_width.W))
   })
 
   val register = RegInit(VecInit(Seq.fill(2^addr_width)(0.U(data_width.W))))
@@ -165,9 +171,7 @@ class ht(data_width: Int,addr_width:Int) extends Module {
   })
 
   val register = RegInit(VecInit(Seq.fill(64)(0.U(data_width.W))))
-  printf("register63=%d\n",register(63))
 
-  printf("\n")
   //to_PE
   when(io.to_PE_control <= 4.U){
     for (i <- 0 until 12){
