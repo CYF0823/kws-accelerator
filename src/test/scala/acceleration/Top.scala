@@ -6,5 +6,5 @@ object acceleratorGen extends App{
 
   (new chisel3.stage.ChiselStage).execute(
     Array("-X", "verilog"),
-    Seq(ChiselGeneratorAnnotation(() => new Top(8))))
+    Seq(ChiselGeneratorAnnotation(() => new Top(16))))
 }

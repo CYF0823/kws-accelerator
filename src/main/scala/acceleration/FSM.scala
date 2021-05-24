@@ -5,18 +5,33 @@ import chisel3.util._
 
 import scala.collection.immutable.Nil
 
-class FSM(n: Int,addr: Int) extends Module {
+class FSM(width: Int) extends Module {
   val io = IO(new Bundle {
-    val L1_rd_addr          = Output(Vec(12, UInt(addr.W)))
+    val Start               = Input(Bool())
+    val Input_Data          = Input(UInt(width.W))
+    val Input_Valid         = Input(Bool())
+    val Input_Ready         = Output(Bool())
+    val L1_wr_data          = Output(UInt(width.W))
+
+    val To_L1_control       = Output(Bool())
+    val L1_rd_addr          = Output(Vec(12, UInt(12.W)))
     val PE_rd_data_mux      = Output(UInt(4.W))
-    val L1_wr_addr          = Output(Vec(12, UInt(addr.W)))
+    val L1_wr_addr          = Output(Vec(12, UInt(12.W)))
     val L1_wrEna            = Output(Vec(12, Bool()))
+
     val PEArray_ctrl        = Output(Vec(3,new PE_controller()))
     val BNArray_ctrl        = Output(Vec(12,UInt(2.W)))
+    val BNArray_wrAddr      = Output(UInt(2.W))
+    val BNArray_wrEna       = Output(Bool())
+    val BNArray_wrData      = Output(UInt(width.W))
     val BN_Unit_ctrl        = Output(UInt(2.W))
+    val BN_Unit_wrAddr      = Output(UInt(2.W))
+    val BN_Unit_wrEna       = Output(Bool())
+    val BN_Unit_wrData      = Output(UInt(width.W))
     val Relu6Array_ctrl     = Output(Vec(12,UInt(1.W)))
     val PE_above_data_ctrl  = Output(UInt(2.W))
     val Activation_ctrl     = Output(UInt(2.W))
+
     val Ht_to_PE_control    = Output(UInt(3.W))
     val Ht_rdAddr           = Output(UInt(6.W))
     val Ht_wrEna            = Output(Bool())
@@ -42,13 +57,19 @@ class FSM(n: Int,addr: Int) extends Module {
     val Result_wrAddr         = Output(UInt(4.W))
   })
 
-  val L1_rd_addr      = Reg(Vec(12, UInt(addr.W)))
+  val L1_rd_addr      = Reg(Vec(12, UInt(12.W)))
   val PE_rd_data_mux  = RegInit(0.U(4.W))
-  val L1_wr_addr      = Reg(Vec(12, UInt(addr.W)))
+  val L1_wr_addr      = Reg(Vec(12, UInt(12.W)))
   val L1_wrEna        = Reg(Vec(12, Bool()))
   val PEArray_ctrl    = Reg(Vec(3,new PE_controller()))
   val BNArray_ctrl    = Reg(Vec(12,UInt(2.W)))
+  val BNArray_wrAddr  = Reg(UInt(2.W))
+  val BNArray_wrEna   = Reg(Bool())
+  val BNArray_wrData  = Reg(UInt(width.W))
   val BN_Unit_ctrl    = Reg(UInt(2.W))
+  val BN_Unit_wrAddr  = Reg(UInt(2.W))
+  val BN_Unit_wrEna   = Reg(Bool())
+  val BN_Unit_wrData  = Reg(UInt(width.W))
   val Relu6Array_ctrl = Reg(Vec(12,UInt(1.W)))
   val PE_above_data_ctrl = RegInit(0.U(2.W))
   val Activation_ctrl = RegInit(0.U(2.W))
@@ -78,6 +99,12 @@ class FSM(n: Int,addr: Int) extends Module {
   val Result_wrEna          = RegInit(false.B)
   val Result_wrAddr         = RegInit(0.U(4.W))
 
+  //load
+  val Ready_reg = RegInit(true.B)
+  val Data_temp = Reg(UInt(width.W))
+  val Data_temp_used = RegInit(true.B)
+  val L1_wr_data     = Reg(UInt(width.W))
+  val To_L1_control  = Reg(Bool())
 
   //output connection
   io.L1_rd_addr     := L1_rd_addr
@@ -86,7 +113,13 @@ class FSM(n: Int,addr: Int) extends Module {
   io.L1_wrEna       := L1_wrEna
   io.PEArray_ctrl   := PEArray_ctrl
   io.BNArray_ctrl   := BNArray_ctrl
+  io.BNArray_wrAddr := BNArray_wrAddr
+  io.BNArray_wrEna  := BNArray_wrEna
+  io.BNArray_wrData := BNArray_wrData
   io.BN_Unit_ctrl   := BN_Unit_ctrl
+  io.BN_Unit_wrAddr := BN_Unit_wrAddr
+  io.BN_Unit_wrEna  := BN_Unit_wrEna
+  io.BN_Unit_wrData := BN_Unit_wrData
   io.Relu6Array_ctrl:= Relu6Array_ctrl
   io.PE_above_data_ctrl := PE_above_data_ctrl
   io.Activation_ctrl := Activation_ctrl
@@ -112,28 +145,79 @@ class FSM(n: Int,addr: Int) extends Module {
   io.FC_temp_rdAddr        := FC_temp_rdAddr
   io.FC_temp_wrEna         := FC_temp_wrEna
   io.FC_temp_wrAddr        := FC_temp_wrAddr
-  io.Result_rdAddr    := Result_rdAddr
-  io.Result_wrEna     := Result_wrEna
-  io.Result_wrAddr    := Result_wrAddr
+  io.Result_rdAddr         := Result_rdAddr
+  io.Result_wrEna          := Result_wrEna
+  io.Result_wrAddr         := Result_wrAddr
+
+  io.Input_Ready := Ready_reg
+  io.L1_wr_data    := L1_wr_data
+  io.To_L1_control := To_L1_control
 
   //state machine
-  val idle :: dw1 :: pw1 :: gru :: fc :: Nil = Enum(5)
+  val idle :: load :: dw1 :: pw1 :: gru :: fc :: Nil = Enum(6)
 
   val state = RegInit(idle)
   val gru_state = RegInit(0.U(4.W))
   val count = RegInit(0.U(10.W))
+  val count1 = RegInit(0.U(7.W))  //0-127
+  val count2 = RegInit(0.U(7.W))
   val gru_count = RegInit(0.U(6.W))
   val read_index = RegInit(0.U(4.W))
   val fc_state = RegInit(0.U(2.W))
 
   switch(state) {
     is(idle) {
+      when(io.Start === true.B){
+        state := load
+      }
+    }
+    is(load) {
+      when(count === 0.U){
+        Ready_reg := true.B
+        io.To_L1_control := true.B
+      }
+      when(Data_temp_used === false.B){
+        Data_temp_used := true.B
+        //initialize
+        when(count === 1.U){
+          L1_wr_data := Data_temp
+          for(i <- 0 until 12){
+            L1_wr_addr(i) := 440.U
+            L1_wrEna(i) := true.B
+          }
+        }
+        when(count >= 2.U && count <= 15.U){
+          L1_wr_data := Data_temp
+          for(i <- 0 until 12){
+            L1_wr_addr(i) := L1_wr_addr(i) + 1.U
+            L1_wrEna(i) := true.B
+          }
+        }
+      } .otherwise{//Data_temp_used === true.B
+        for(i <- 0 until 12){
+          L1_wrEna(i) := false.B
+        }
+      }
+
+      when(io.Input_Valid === true.B && io.Input_Ready === true.B){
+        Data_temp := io.Input_Data
+        Data_temp_used := false.B
+        count := count + 1.U
+      }
+      when(count === 16.U){
+        state := dw1
+        io.To_L1_control := false.B
+      }
 
     }
-
     is(dw1) {
       when(count =/= 52.U){
         count := count + 1.U
+      }
+      when(count1 =/= 9.U){
+        count1 := count1 + 1.U
+      }.otherwise{
+        count1 := 0.U
       }
       //PE state
       when(count === 0.U){
@@ -169,15 +253,16 @@ class FSM(n: Int,addr: Int) extends Module {
         }
       }
       //write
-      when((count >= 5.U) && (count <= 43.U) && (count % 10.U =/= 2.U) && (count % 10.U =/= 3.U)){
-        for (i <- 0 until 12) {
-          L1_wrEna(i) := true.B
-          L1_wr_addr(i) := L1_wr_addr(i) + 1.U
-        }
-      }
-      when((count >= 5.U) && (count <= 43.U) && (count % 10.U === 2.U) && (count % 10.U === 3.U)){
-        for (i <- 0 until 12) {
-          L1_wrEna(i) := false.B
+      when((count >= 5.U) && (count <= 43.U)){
+        when((count1 === 2.U) && (count1 === 3.U)){ //(count % 10.U === 2.U) && (count % 10.U === 3.U)
+          for (i <- 0 until 12) {
+            L1_wrEna(i) := false.B
+          }
+        }.otherwise{  //(count % 10.U =/= 2.U) && (count % 10.U =/= 3.U)
+          for (i <- 0 until 12) {
+            L1_wrEna(i) := true.B
+            L1_wr_addr(i) := L1_wr_addr(i) + 1.U
+          }
         }
       }
       when((count >= 44.U) && (count <= 51.U)){
@@ -193,6 +278,7 @@ class FSM(n: Int,addr: Int) extends Module {
           L1_wrEna(i) := false.B
         }
         count := 0.U
+        count1 := 0.U
         state := pw1
       }
     }
@@ -201,6 +287,19 @@ class FSM(n: Int,addr: Int) extends Module {
       when(count =/= 405.U){
         count := count + 1.U
       }
+      //%8
+      when(count1 =/= 7.U){
+        count1 := count1 + 1.U
+      }.otherwise{
+        count1 := 0.U
+      }
+      //%96
+      when(count2 =/= 95.U){
+        count1 := count1 + 1.U
+      }.otherwise{
+        count1 := 0.U
+      }
+
       when(count === 0.U){
         //PE state
         PEArray_ctrl(2).control := 2.U
@@ -233,11 +332,11 @@ class FSM(n: Int,addr: Int) extends Module {
       //read
       when(count >= 1.U && count <= 391.U){
         L1_rd_addr(read_index) := L1_rd_addr(read_index) + 1.U
-        when((count % 8.U === 7.U) && (count % 96.U =/= 95.U)){
+        when((count1 === 7.U) && (count2 =/= 95.U)){
           read_index := read_index + 1.U
           PE_rd_data_mux := PE_rd_data_mux + 1.U
         }
-        when(count % 96.U === 95.U){
+        when(count2 === 95.U){
           read_index := 0.U
         }
       }
@@ -303,7 +402,7 @@ class FSM(n: Int,addr: Int) extends Module {
           L1_wr_addr(i) := L1_wr_addr(i) + 1.U
         }
       }
-      when(count === 12.U){
+      when(count === 12.U){(count >= 44.U) && (count <= 51.U)
         for (i <- 0 until 11) {
           L1_wrEna(i) := true.B
           L1_wr_addr(i) := L1_wr_addr(i) + 1.U
@@ -387,6 +486,8 @@ class FSM(n: Int,addr: Int) extends Module {
           L1_wrEna(i) := false.B
         }
         count := 0.U
+        count1 := 0.U
+        count2 := 0.U
         state := gru
       }
     }
@@ -443,6 +544,13 @@ class FSM(n: Int,addr: Int) extends Module {
         when(count =/= 910.U){
           count := count + 1.U
         }
+        //%64
+        when(count1 =/= 63.U){
+          count1 := count1 + 1.U
+        }.otherwise{
+          count1 := 0.U
+        }
+
         when(count === 0.U){
           //PE state
           PEArray_ctrl(2).control := 4.U
@@ -453,7 +561,7 @@ class FSM(n: Int,addr: Int) extends Module {
 
           //read initialize
           for (i <- 0 until 12) {
-            L1_rd_addr(i) := 0.U
+            L1_rd_addr(i) := 500.U
           }
           PE_above_data_ctrl := 0.U
           PE_rd_data_mux := 0.U
@@ -596,7 +704,7 @@ class FSM(n: Int,addr: Int) extends Module {
         }
         //write
         when((count >= 14.U) && (count <= 909.U)){
-          when(count % 64.U === 14.U) {
+          when(count1 === 14.U) {
             Zt_wrAddr := 0.U
             Zt_wrEna := true.B
           }
@@ -608,6 +716,7 @@ class FSM(n: Int,addr: Int) extends Module {
         //next state
         when(count === 910.U){
           count := 0.U
+          count1 := 0.U
           Zt_wrEna := false.B
           gru_state := 2.U
         }
@@ -617,6 +726,13 @@ class FSM(n: Int,addr: Int) extends Module {
         when(count =/= 910.U){
           count := count + 1.U
         }
+        //%64
+        when(count1 =/= 63.U){
+          count1 := count1 + 1.U
+        }.otherwise{
+          count1 := 0.U
+        }
+
         when(count === 0.U){
           //PE state
           PEArray_ctrl(2).control := 4.U
@@ -767,7 +883,7 @@ class FSM(n: Int,addr: Int) extends Module {
         }
         //write
         when((count >= 14.U) && (count <= 909.U)){
-          when(count % 64.U === 14.U) {
+          when(count1 === 14.U) {
             Rt_wrAddr := 0.U
             Rt_wrEna := true.B
           }
@@ -779,6 +895,7 @@ class FSM(n: Int,addr: Int) extends Module {
         //next state
         when(count === 910.U){
           count := 0.U
+          count1 := 0.U
           Rt_wrEna := false.B
           gru_state := 3.U
         }
@@ -789,6 +906,13 @@ class FSM(n: Int,addr: Int) extends Module {
         when(count =/= 526.U){
           count := count + 1.U
         }
+        //%64
+        when(count1 =/= 63.U){
+          count1 := count1 + 1.U
+        }.otherwise{
+          count1 := 0.U
+        }
+
         when(count === 0.U){
           //PE state
           PEArray_ctrl(2).control := 4.U
@@ -939,7 +1063,7 @@ class FSM(n: Int,addr: Int) extends Module {
         }
         //write
         when((count >= 14.U) && (count <= 525.U)){
-          when(count % 64.U === 14.U) {
+          when(count1 === 14.U) {
             WhXt_wrAddr := 0.U
             WhXt_wrEna := true.B
           }
@@ -951,6 +1075,7 @@ class FSM(n: Int,addr: Int) extends Module {
         //next state
         when(count === 526.U){
           count := 0.U
+          count1 := 0.U
           WhXt_wrEna := false.B
           gru_state := 4.U
         }
@@ -961,6 +1086,14 @@ class FSM(n: Int,addr: Int) extends Module {
         when(count =/= 398.U){
           count := count + 1.U
         }
+
+        //%64
+        when(count1 =/= 63.U){
+          count1 := count1 + 1.U
+        }.otherwise{
+          count1 := 0.U
+        }
+
         when(count === 0.U){
           //PE state
           PEArray_ctrl(2).control := 4.U
@@ -1111,7 +1244,7 @@ class FSM(n: Int,addr: Int) extends Module {
         }
         //write
         when((count >= 14.U) && (count <= 397.U)){
-          when(count % 64.U === 14.U) {
+          when(count1 === 14.U) {
             Uhht_1_wrAddr := 0.U
             Uhht_1_wrEna := true.B
           }
@@ -1123,6 +1256,7 @@ class FSM(n: Int,addr: Int) extends Module {
         //next state
         when(count === 398.U){
           count := 0.U
+          count1 := 0.U
           Uhht_1_wrEna := false.B
           gru_state := 5.U
         }
@@ -1205,6 +1339,14 @@ class FSM(n: Int,addr: Int) extends Module {
         when(count =/= 398.U){
           count := count + 1.U
         }
+
+        //%64
+        when(count1 =/= 63.U){
+          count1 := count1 + 1.U
+        }.otherwise{
+          count1 := 0.U
+        }
+
         when(count === 0.U){
           //PE state
           PEArray_ctrl(2).control := 4.U
@@ -1355,7 +1497,7 @@ class FSM(n: Int,addr: Int) extends Module {
         }
         //write
         when((count >= 14.U) && (count <= 397.U)){
-          when(count % 64.U === 14.U) {
+          when(count1 === 14.U) {
             FC_temp_wrAddr := 0.U
             FC_temp_wrEna := true.B
           }
@@ -1367,6 +1509,7 @@ class FSM(n: Int,addr: Int) extends Module {
         //next state
         when(count === 398.U){
           count := 0.U
+          count1 := 0.U
           FC_temp_wrEna := false.B
           fc_state := 2.U
         }
@@ -1408,6 +1551,13 @@ class FSM(n: Int,addr: Int) extends Module {
         when(count =/= 398.U){
           count := count + 1.U
         }
+        //%12
+        when(count1 =/= 11.U){
+          count1 := count1 + 1.U
+        }.otherwise{
+          count1 := 0.U
+        }
+
         when(count === 0.U){
           //PE state
           PEArray_ctrl(2).control := 4.U
@@ -1558,7 +1708,7 @@ class FSM(n: Int,addr: Int) extends Module {
         }
         //write
         when((count >= 14.U) && (count <= 85.U)){
-          when(count % 12.U === 2.U) {
+          when(count1 === 2.U) {
             Result_wrAddr := 0.U
             Result_wrEna := true.B
           }
@@ -1570,6 +1720,7 @@ class FSM(n: Int,addr: Int) extends Module {
         //next state
         when(count === 86.U){
           count := 0.U
+          count1 := 0.U
           Result_wrEna := false.B
           fc_state := 0.U
           state := idle
